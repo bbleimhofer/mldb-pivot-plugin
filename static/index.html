@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Pivot Table Plugin</title>
+            <link rel="stylesheet" type="text/css" href="http://nicolas.kruchten.com/pivottable/dist/pivot.css">
+            <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+            <script type="text/javascript" src="http://nicolas.kruchten.com/pivottable/examples/ext/jquery-1.8.3.min.js"></script>
+            <script type="text/javascript" src="http://nicolas.kruchten.com/pivottable/examples/ext/jquery-ui-1.9.2.custom.min.js"></script>
+            <script type="text/javascript" src="http://nicolas.kruchten.com/pivottable/examples/ext/jquery.csv-0.71.min.js"></script>
+            <script type="text/javascript" src="http://nicolas.kruchten.com/pivottable/dist/pivot.js"></script>
+            <script type="text/javascript" src="http://nicolas.kruchten.com/pivottable/dist/gchart_renderers.js"></script>
+        <style>
+            * {font-family: Verdana;}
+            .node {
+              border: solid 1px white;
+              font: 10px sans-serif;
+              line-height: 12px;
+              overflow: hidden;
+              position: absolute;
+              text-indent: 2px;
+            }
+        </style>
+    </head>
+    <body>
+        <script type="text/javascript">
+            google.load("visualization", "1", {packages:["corechart", "charteditor"]});
+            $(function(){
+                $("#go").bind("click", function(event){
+                    var sql = $("#sql").val()
+                            .replace(/\r?\n|\r/gm," ")
+                            .replace(/\s+/g, ' ')
+                            .trim();
+                    $.getJSON("/v1/query?q="+sql, function(result){
+                        function inputProvider(cb){
+                            var columns, i, j, len, len1, name, record, ref, value, x;
+
+                            for (i = 0, len = result.length; i < len; i++) {
+                              columns = result[i].columns;
+                              record = {};
+                              for (j = 0, len1 = columns.length; j < len1; j++) {
+                                ref = columns[j], name = ref[0], value = ref[1], x = ref[2];
+                                record[name] = value;
+                              }
+                              cb(record);
+                            }
+                        };
+                        $("#output").pivotUI( inputProvider, {
+                            renderers: $.extend(
+                            $.pivotUtilities.renderers, 
+                            $.pivotUtilities.gchart_renderers, 
+                            $.pivotUtilities.d3_renderers
+                            )
+                        });
+                    });
+                });  
+             });
+        </script>
+
+        <textarea id="sql" style="height: 150px; width: 300px;">
+            (SQL goes here)
+        </textarea>
+        <br><button id="go">Pivot!</button>
+        <div id="output" style="margin: 10px;"></div>
+
+    </body>
+</html>
