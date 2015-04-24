@@ -25,26 +25,15 @@
         <script type="text/javascript">
             google.load("visualization", "1", {packages:["corechart", "charteditor"]});
             $(function(){
-                $("#go").bind("click", function(event){
+                $("#go").bind("click", function(e){
+                    e.preventDefault();
                     var sql = $("#sql").val()
                             .replace(/\r?\n|\r/gm," ")
                             .replace(/\s+/g, ' ')
                             .trim();
-                    $.getJSON("/v1/query?q="+sql, function(result){
-                        function inputProvider(cb){
-                            var columns, i, j, len, len1, name, record, ref, value, x;
-
-                            for (i = 0, len = result.length; i < len; i++) {
-                              columns = result[i].columns;
-                              record = {};
-                              for (j = 0, len1 = columns.length; j < len1; j++) {
-                                ref = columns[j], name = ref[0], value = ref[1], x = ref[2];
-                                record[name] = value;
-                              }
-                              cb(record);
-                            }
-                        };
-                        $("#output").pivotUI( inputProvider, {
+                    $.getJSON("/v1/query?format=table&q="+sql, function(result){
+                        $("#output").pivotUI( result, {
+                            hiddenAttributes: ["_rowName"],
                             renderers: $.extend(
                             $.pivotUtilities.renderers, 
                             $.pivotUtilities.gchart_renderers, 
@@ -55,11 +44,12 @@
                 });  
              });
         </script>
-
-        <textarea id="sql" style="height: 150px; width: 300px;">
-            (SQL goes here)
-        </textarea>
-        <br><button id="go">Pivot!</button>
+        <div style="width: 500px; text-align: center; margin: 50px auto;">
+        <form>
+            <textarea id="sql" style="height: 100px; width: 300px; font-size: 20px;">(SQL goes here)</textarea>
+            <br><input type="button" id="go" value="Pivot!">
+        </form>
+        </div>
         <div id="output" style="margin: 10px;"></div>
 
     </body>
